@@ -1,1 +1,1 @@
-# API Aqua-tec modelada para o projeto de Monitoramento de Fluxo de Mercado
+api para a inserção dos dados do sensor no banco de dados
