@@ -2,95 +2,83 @@ CREATE DATABASE flowtrak;
 USE flowtrak;
 
 CREATE TABLE empresa_parceira(
-	id_empresa_parceira INT PRIMARY KEY AUTO_INCREMENT,
-	razao_social VARCHAR(45) NOT NULL,
-	cnpj VARCHAR(45) NOT NULL,
-	endereco_sede VARCHAR(300) NOT NULL
-);
-
-CREATE TABLE franquia(
-	id_franquia INT, 
-	nome VARCHAR(45) NOT NULL,
-	endereco VARCHAR(45) NOT NULL,
-	fk_empresa INT,
-	CONSTRAINT chave_composta PRIMARY KEY (id_franquia, fk_empresa),
-	CONSTRAINT ctFkFranquiaEmpresa FOREIGN KEY (fk_empresa) REFERENCES empresa_parceira(id_empresa_parceira)
+	id_empresa INT PRIMARY KEY AUTO_INCREMENT, 
+	nome VARCHAR(45),
+  cnpj CHAR(14),
+	endereco_sede VARCHAR(45), -- da pra criar uma nova tabela pra dividir o dado composto
+	franqueadora INT,
+	CONSTRAINT ctFkFranqueadora FOREIGN KEY(franqueadora) REFERENCES empresa_parceira(id_empresa)
 );
 
 CREATE TABLE usuario(
 	id_usuario INT PRIMARY KEY AUTO_INCREMENT,
-	email VARCHAR(45) NOT NULL,
-	senha VARCHAR(45) NOT NULL,
-	nivel_acesso VARCHAR(45) NOT NULL,
-	fk_empresa_parceira INT NOT NULL,
-	CONSTRAINT ctFkUsuarioEmpresa FOREIGN KEY(fk_empresa_parceira) REFERENCES empresa_parceira(id_empresa_parceira),
+	nome VARCHAR(45),
+	email VARCHAR(45),
+	senha VARCHAR(45),
+	nivel_acesso VARCHAR(45),
+	fk_empresa_parceira INT,
+	CONSTRAINT ctFkEmpresaParceira FOREIGN KEY(fk_empresa_parceira) REFERENCES empresa_parceira(id_empresa),
 	CONSTRAINT ctNivelAcesso CHECK (nivel_acesso IN ('ADMIN','OPERADOR'))
 );
 
 CREATE TABLE ponto_monitoramento (
 	id_ponto_monitoramento INT PRIMARY KEY AUTO_INCREMENT,
-	nome VARCHAR(45) NOT NULL,
-	fk_franquia INT NOT NULL,
-	CONSTRAINT ctFkPontoFranquia FOREIGN KEY(fk_franquia) REFERENCES franquia(id_franquia)
+	nome VARCHAR(45),
+	fk_empresa INT,
+	CONSTRAINT ctFKempresaPonto FOREIGN KEY(fk_empresa) REFERENCES empresa_parceira(id_empresa)
 );
 
 CREATE TABLE sensor(
 	id_sensor INT PRIMARY KEY AUTO_INCREMENT,
-	fk_ponto INT NOT NULL,
+	fk_ponto INT,
 	status VARCHAR(45),
-	CONSTRAINT ctFkSensorPonto FOREIGN KEY (fk_ponto) REFERENCES ponto_monitoramento(id_ponto_monitoramento),
+	CONSTRAINT ctFkPontoMonitoramento FOREIGN KEY (fk_ponto) REFERENCES ponto_monitoramento(id_ponto_monitoramento),
 	CONSTRAINT ctStatus CHECK (status IN ('ATIVO','DESATIVADO'))
 );
 
 CREATE TABLE dado_captado(
-	id_dado_captado INT PRIMARY KEY AUTO_INCREMENT,
-	fk_sensor INT NOT NULL,
+	id_dado_captado INT, 
+	fk_sensor INT,
 	data_hora DATETIME,
-	quantidade_pessoas INT,
+	fluxo TINYINT, 
 	CONSTRAINT ctFkDadoSensor FOREIGN KEY(fk_sensor) REFERENCES sensor(id_sensor)
 );
 
-INSERT INTO empresa_parceira (razao_social, cnpj, endereco_sede) VALUES
-('Tech Solutions LTDA', '12345678000101', 'São Paulo - SP'),
-('Inova Sistemas SA', '22345678000102', 'Campinas - SP'),
-('Global Tech LTDA', '32345678000103', 'Rio de Janeiro - RJ'),
-('NextGen Tecnologia', '42345678000104', 'Belo Horizonte - MG'),
-('Alpha Sistemas', '52345678000105', 'Curitiba - PR');
+INSERT INTO empresa_parceira (nome, cnpj, endereco_sede, franqueadora) VALUES 
+('Carrefour', '45543915000181', 'Av. das Nações Unidas, 15187', NULL),
+('Extra', '06402330000129', 'Av. Brigadeiro Luís Antônio, 3172', NULL),
+('Supermercados BH', '04641376000136', 'Rod. MG-010, KM 18', NULL),
+('Assaí Atacadista', '06057223000171', 'Av. Aricanduva, 5555', NULL),
+('Muffato', '01648512000108', 'Rod. Celso Garcia Cid, 1100', NULL);
 
-INSERT INTO franquia (nome, endereco, fk_empresa) VALUES
-('Franquia Centro', 'Centro SP', 1),
-('Franquia Norte', 'Zona Norte SP', 2),
-('Franquia Sul', 'Zona Sul SP', 3),
-('Franquia Leste', 'Zona Leste SP', 4),
-('Franquia Oeste', 'Zona Oeste SP', 5);
+INSERT INTO usuario (nome, email, senha, fk_empresa_parceira, nivel_acesso) VALUES 
+('Vitor', 'vitor@carrefour.com', '123', 1, 'ADMIN'),
+('Victor', 'victor@carrefour.com', '123', 1, 'OPERADOR'),
+('Isaac', 'isaac@extra.com', '123', 2, 'ADMIN'),
+('Karina', 'karina@bh.com', '123', 3, 'OPERADOR'),
+('Caio', 'caio@assai.com', '123', 4, 'ADMIN'),
+('Emanuelly', 'emanuelly@muffato.com', '123', 5, 'OPERADOR');
 
-INSERT INTO usuario (email, senha, nivel_acesso, fk_empresa_parceira) VALUES
-('admin1@empresa.com', '123456', 'ADMIN', 1),
-('operador1@empresa.com', '123456', 'OPERADOR', 1),
-('admin2@empresa.com', '123456', 'ADMIN', 2),
-('operador2@empresa.com', '123456', 'OPERADOR', 3),
-('admin3@empresa.com', '123456', 'ADMIN', 4);
-
-INSERT INTO ponto_monitoramento (nome, fk_franquia) VALUES
+INSERT INTO ponto_monitoramento (nome, fk_empresa) VALUES 
 ('Entrada Principal', 1),
-('Saída Principal', 2),
-('Corredor A', 3),
-('Corredor B', 4),
-('Caixa 1', 5);
+('Setor Hortifruti', 1),
+('Caixas Rápidos', 2),
+('Corredor Central', 3),
+('Área de Carga', 4);
 
-INSERT INTO sensor (fk_ponto, status) VALUES
+INSERT INTO sensor (fk_ponto, status) VALUES 
 (1, 'ATIVO'),
 (2, 'ATIVO'),
-(3, 'DESATIVADO'),
-(4, 'ATIVO'),
-(5, 'DESATIVADO');
+(3, 'ATIVO'),
+(4, 'DESATIVADO'),
+(5, 'ATIVO');
 
-INSERT INTO dado_captado (fk_sensor, data_hora, quantidade_pessoas) VALUES
-(1, '2026-03-29 10:00:00', 15),
-(2, '2026-03-29 10:05:00', 20),
-(3, '2026-03-29 10:10:00', 5),
-(4, '2026-03-29 10:15:00', 30),
-(5, '2026-03-29 10:20:00', 12);
+INSERT INTO dado_captado (data_hora, fluxo, fk_sensor) VALUES 
+('2023-10-27 08:00:00', 1, 1),
+('2023-10-27 08:05:00', 1, 1),
+('2023-10-27 08:10:00', 0, 2),
+('2023-10-27 09:00:00', 1, 3),
+('2023-10-27 09:30:00', 1, 5);
 
 SELECT * FROM sensor;
 SELECT * FROM ponto_monitoramento;
@@ -98,3 +86,5 @@ SELECT * FROM usuario;
 SELECT * FROM dado_captado;
 SELECT * FROM empresa_parceira;
 SELECT * FROM franquia;
+
+
